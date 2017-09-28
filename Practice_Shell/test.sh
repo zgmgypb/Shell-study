@@ -2,27 +2,37 @@
 
 TEST_ENV_L=4
 
-echo $REPLY
-echo '\t test1 $TEST_ENV_1'
-echo $'\t test1 $TEST_ENV_1'
+for cmd in $COMPREPLY;
+do
+	echo $cmd;
+done
 
-func () {
-	echo "$*"
-	for i in $*;
-	do
-		echo $i
-	done
-}
+#while read -r
+#do
+#	echo "$REPLY"
+#done
 
-case 1 in 
-	1)
-		func test1 test2 tes3;
-		echo "1";;
-	2)
-		echo "2";;
-	3)
-		echo "3";;
-esac
+#echo $REPLY
+#echo '\t test1 $TEST_ENV_1'
+#echo $'\t test1 $TEST_ENV_1'
+#
+#func () {
+#	echo "$*"
+#	for i in $*;
+#	do
+#		echo $i
+#	done
+#}
+#
+#case 1 in 
+#	1)
+#		func test1 test2 tes3;
+#		echo "1";;
+#	2)
+#		echo "2";;
+#	3)
+#		echo "3";;
+#esac
 
 #for i;
 #do
