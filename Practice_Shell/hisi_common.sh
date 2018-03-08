@@ -78,7 +78,7 @@ LOG()
 #$2: level
 DEBUG()
 {
-	local level=$2
+	local level=$2 # 定义本地变量
 	[ -z "$level" ] && { level=0; }
 	[ $level -lt $DEBUG_LOG_LEVEL ] && return 0;
 
