@@ -78,16 +78,16 @@ LOG()
 #$2: level
 DEBUG()
 {
-	local level=$2 # 定义本地变量
-	[ -z "$level" ] && { level=0; }
-	[ $level -lt $DEBUG_LOG_LEVEL ] && return 0;
+	local level=$2
+	[ -z "$level" ] && { level=0; } # 空参数检测
+	[ $level -lt $DEBUG_LOG_LEVEL ] && return 0; # level 越高表示调试级别越高
 
 	echo "$COLOR_WHITE$1$COLOR_NORMAL" > $DEBUG_LOG_FILE
 }
 
 # $1: command
 # $2: LR/CR steps
-run_command_progress()
+run_command_progress() # 这个函数不完善,运行效果不好
 {
 	local n=0
 	local steps=$2
@@ -126,12 +126,13 @@ run_command_progress()
 	echo ""
 }
 
+# 该函数使用进度条显示命令的执行进度，通过命令产生的输出行来判断命令执行的进度
 # $1: command
-# $2: total
-# $3: command to calc totals
+# $2: total # 手动输入总输出行数
+# $3: command to calc totals # 使用命令计算 command 的输出总行数
 run_command_progress_float()
 {
-	local readonly RCP_RANGE=50
+	local readonly RCP_RANGE=50 # 定义只读变量
 	local rcp_lines=0
 	local rcp_nextpos=1
 	local rcp_total=0
@@ -156,8 +157,8 @@ run_command_progress_float()
 	[ -z "$rcp_total" ] && rcp_total=1
 	[ $rcp_total -le 0 ] && rcp_total=1
 
-	prog_bar_base="[    ]"
-	while [ $rcp_tmp -lt $RCP_RANGE ]
+	prog_bar_base="[    ]" # 进度显示百分比形如 100%，故留 4 个占位空格
+	while [ $rcp_tmp -lt $RCP_RANGE ] # 进度条初始化，显示 50 个 - 符号，表示开始
 	do
 		prog_bar_base="$prog_bar_base-"
 		#((rcp_tmp++)) 
@@ -166,7 +167,7 @@ run_command_progress_float()
 	prog_bar_base="${prog_bar_base}|"
 	printf "\r$prog_bar_base\r"
 
-	set +e
+	set +e # 即使命令有错，继续执行
 	eval $1 | while read line
 	do
 		#((rcp_lines++))
@@ -174,8 +175,8 @@ run_command_progress_float()
 
 		if [ $rcp_lines -ge $rcp_nextpos ]
 		then
-			rcp_percent=`expr \( $rcp_lines \* 101 - 1 \) / $rcp_total `
-			rcp_prog=`expr \( $rcp_lines \* \( $RCP_RANGE + 1 \) - 1 \) / $rcp_total `
+			rcp_percent=`expr \( $rcp_lines \* 101 - 1 \) / $rcp_total ` # 乘 101 的作用是最后完成时保证进度是 100%
+			rcp_prog=`expr \( $rcp_lines \* \( $RCP_RANGE + 1 \) - 1 \) / $rcp_total ` # 设置实际显示的进度条长度
 			[ $rcp_prog -gt $RCP_RANGE ] && rcp_prog=$RCP_RANGE
 			rcp_nextpos=`expr \( \( $rcp_percent + 1 \) \* $rcp_total \) / 100`
 			[ $rcp_nextpos -gt $rcp_total ] && rcp_nextpos=$rcp_total
@@ -187,24 +188,25 @@ run_command_progress_float()
 				progress_bar="$progress_bar#"
 				((rcp_tmp++))
 			done
-			printf "\r$prog_bar_base\r[%3d%%]$progress_bar\r" $rcp_percent
+			printf "\r$prog_bar_base\r[%3d%%]$progress_bar\r" $rcp_percent # 刷新显示
 		fi
 	done
-	set -e
+	set -e # 恢复
 
 	echo ""
 }
 
+# 显示绝对路径
 #$1: path
 abs_path()
 {
-	pushd "$1" >/dev/null
-	[ $? -ne 0 ] && return 1;
-	pwd
-	popd >/dev/null
+	pushd "$1" >/dev/null # 跳转到传入的路径
+	[ $? -ne 0 ] && return 1; # 错误
+	pwd # 显示绝对路径
+	popd >/dev/null # 恢复到之前的路径
 }
 
-#$1: $cfg_moddir is multi
+#$1: $cfg_moddir is multi # 创建一个文件,unpacking/cleanup 的脚本
 prepare_unpacking_cleanup()
 {
 	$CAT >> $HCM_SH_SDKINSTALL << EOF
@@ -236,6 +238,7 @@ fi
 
 # $1: prefix
 # $2..$n: dirs list
+# 创建多个目录
 make_dirs()
 {
 	local make_dirs_count=2
@@ -256,19 +259,20 @@ make_dirs()
 
 check_dir_empty()
 {
-	[ -z "$1" ] && return 0;
-	! [ -d $1 ] && return 0;
-	[ -z "`find $1/ -maxdepth 1 -mindepth 1`" ] && return 0;
+	[ -z "$1" ] && return 0; # 无参数
+	! [ -d $1 ] && return 0; # 非目录
+	[ -z "`find $1/ -maxdepth 1 -mindepth 1`" ] && return 0; # 目录中无内容
 
 	return 1
 }
 
+# 第一个路径减去第二个路径，如: $1 为 /home/zgm/test, $2 为 /home/zgm 返回值为 test
 # $1 - $2
 # $3: frefix for '/', like "\\\\/"
 sub_dir()
 {
 	local subdir=
-	local dirA=`dirname $1/stub`
+	local dirA=`dirname $1/stub` # 获取路径名
 	local dirB=`dirname $2/stub`
 
 	while [ "$dirA" != "$dirB" ] && [ "$dirA" != "." ] && [ "$dirA" != "/" ] 
@@ -286,6 +290,7 @@ sub_dir()
 	dirname $subdir/stub
 }
 
+# 相对路径计算
 # $1: base dir
 # $2: dest dir
 # $3: frefix for '/', like "\\\\/"
@@ -325,6 +330,7 @@ set_drv_kbuild()
 	done	
 }
 
+# 写 rlevel.config 文件
 #$1: name
 #$2: level
 write_rootfs_level()
@@ -338,6 +344,7 @@ write_rootfs_level()
 	echo "[$2]	$1" >> $rlevel_config
 }
 
+# 移除版本管理软件 cvs 产生的文件目录
 #$1: 
 remove_all_cvsdir()
 {
@@ -347,6 +354,7 @@ remove_all_cvsdir()
 	find $1 -type d -name "CVS" | xargs rm -fr
 }
 
+# strip 没有 strip 的文件
 #$1: strip command
 #$2: file list
 strip_elf()
@@ -360,6 +368,7 @@ strip_elf()
 	done
 }
 
+# strip 没有 strip 的库文件
 #$1: strip command
 #$2: file list
 strip_lib()
@@ -372,6 +381,7 @@ strip_lib()
 	done
 }
 
+# 安装外部的内核模块
 # $1: rootfs base
 # $2: modules list
 install_extern_kmod()
@@ -393,7 +403,7 @@ install_extern_kmod()
 			{ WARN "Extern module $iek_extmod conflict: $iek_dest_module"; sleep 1; }
 
 		iek_installed_modules="$iek_installed_modules $iek_dest_module"
-		$CP -uf $iek_extmod $HCM_DESTDIR/$HCM_KERNEL_INSTALL_RESOURCE/$iek_dest_module
+		$CP -uf $iek_extmod $HCM_DESTDIR/$HCM_KERNEL_INSTALL_RESOURCE/$iek_dest_module # cp -u 表示只拷贝比目标文件更新的文件
 	done
 
 	pushd $HCM_DESTDIR/$HCM_KERNEL_INSTALL_RESOURCE >/dev/null
@@ -415,6 +425,7 @@ install_extern_kmod()
 	popd >/dev/null
 }
 
+# 安装内核模块
 # $1: dest rootfs based
 # $2: module list
 install_kernel_module()
@@ -447,6 +458,7 @@ EOF
 	popd >/dev/null
 }
 
+# 将字符串中的非法字符替换为 _ 符合变量名的规则
 string_to_varname()
 {
 	echo "$1" | sed 's/[^a-zA-Z0-9_]/_/g'
@@ -454,7 +466,7 @@ string_to_varname()
 
 patchset_get_param()
 {
-	echo "$1" | cut -d')' -f1 | sed 's/[\(\|]/ /g'
+	echo "$1" | cut -d')' -f1 | sed 's/[\(\|]/ /g' # cut -d 指定分隔符分隔字符串
 }
 
 patchset_get_name()

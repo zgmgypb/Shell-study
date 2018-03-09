@@ -1,11 +1,34 @@
 #! /bin/bash
 
+source ./hisi_common.sh
+base_offset_dir "/home/zgm" "/home/zgm/linux/kernel/arch/hisi3531A" 
+sub_dir "/home/zgm/linux/kernel/arch/hisi3531A" "/home/zgm"
+#abs_path ./
+#run_command_progress "cat ./hisi_common.sh"
+#run_command_progress_float "cat ./hisi_common.sh" 0 "cat hisi_common.sh | wc -l"
+
 TEST_ENV_L=4
 
-for cmd in $COMPREPLY;
-do
-	echo $cmd;
-done
+#i=0
+#find ./ | while read line
+#do 
+#	i=`expr $i + 1`
+#	echo $i
+#	echo $line
+#done
+#
+#i=0
+#for x in `find ./`;
+#do
+#	i=`expr $i + 1`
+#	echo $i
+#	echo $x
+#done
+
+#for cmd in $COMPREPLY;
+#do
+#	echo $cmd;
+#done
 
 #while read -r
 #do
